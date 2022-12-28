@@ -31,16 +31,19 @@ slide_margin = 0.05 * mm;
 
 // Holder dimension
 wall_thickness = 2.5 * mm;
+slide_size = wall_thickness / 3;
 ramp_length = 5 * mm;
-lid_width = card_width + 2 * card_margin - 2 * slide_margin;
-lid_length = card_length + 2 * card_margin + ramp_length;
+
+lid_width = card_width + 2 * card_margin + 2 * slide_size - 2 * slide_margin; // contact on 2 sides
+lid_length = card_length + 2 * card_margin + wall_thickness - slide_margin; // contact on 1 side
 lid_emboss = wall_thickness / 3;
 lid_height = wall_thickness;
+
 pit_width = card_width + 2 * card_margin + 2 * wall_thickness;
-pit_length = lid_length + 2 * wall_thickness;
+pit_length = card_length + 2 * card_margin + 2 * wall_thickness;
 pit_height = 10 * mm;
 
-module Lid() {
+module Lid() { // `make` me
   difference() {
     cube([lid_width, lid_length, lid_height]);
     translate([(lid_width - svg_width) / 2, (lid_length - svg_length) / 2, -pad_manifold]) {
@@ -51,9 +54,11 @@ module Lid() {
   }
 }
 
+// Creates a tray in the shape of the Pit section, aligned with the top at z=0
+// and the non-sloped side aligned at y=0, heading towards +y
 module PitTray(l, w, h, ramp=ramp_length) {
-  translate([w/2, -l/2, h]) {
-    rotate([-90 * degrees, 0, 90 * degrees]) {
+  translate([-w/2, l, h]) {
+    rotate([-90 * degrees, 0, -90 * degrees]) {
       linear_extrude(height=w) {
         polygon(points=[
           [0, h],
@@ -66,16 +71,22 @@ module PitTray(l, w, h, ramp=ramp_length) {
   }
 }
 
-module Pit() {
+module Pit() { // `make` me
   difference() {
     PitTray(l=pit_length, w=pit_width, h=pit_height);
-    translate([0, 0, -pad_manifold]) {
+    translate([0, wall_thickness, -pad_manifold]) {
       PitTray(l=pit_length - 2 * wall_thickness, w=pit_width - 2*wall_thickness, h=pit_height - wall_thickness);
     }
-    translate([-svg_width/2, -svg_length/2, pit_height-lid_emboss]) {
+    translate([-svg_width/2, 0, pit_height-lid_emboss]) {
       linear_extrude(height=lid_emboss+pad_manifold) {
         import("images/mandala.svg");
       }
+    }
+    slider_w = lid_width+2*slide_margin; // two contacts
+    slider_l = lid_length+slide_margin; // one contact
+    slider_h = lid_height+2*slide_margin; // two contacts
+    translate([-slider_w/2, -pad_manifold, slide_size]) {
+      cube([slider_w, slider_l+pad_manifold, slider_h]);
     }
   }
 }
