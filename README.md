@@ -1,8 +1,11 @@
-# Machi Koro Replacement Coins
+# Business Card Mandala Case
 
-My copy of [Machi Koro](https://boardgamegeek.com/boardgame/143884/machi-koro) has coins which are quite used and worn.
+Based on the pictures of [this item from thingiverse](https://www.thingiverse.com/thing:340478),
+this is a business card holder with a pleasing mandala pattern (tailored to match my wife's
+business cards). It has small detents on the lid and is meant to be printed with a somewhat rigid
+resin.
 
-For now, this only contains the "one" coin. Tested with OpenSCAD 2021.01.
+Tested with OpenSCAD 2021.01
 
 ## Building Instructions
 
@@ -10,12 +13,11 @@ To make STLs, simply run `make` in this folder. Requires OpenSCAD to be in the p
 
 ## Printing
 
-This model prints best on an SLA printer. Plate it with the coin vertical, the points of the crown towards the build
-plate. Add supports along the flat edge of the crown and the tip of the 1. Use copious supports along the coin edge
-facing the plate, especially if you're printing many copies at once.
+This model prints best on an SLA printer. Plate it at an angle, according to the formula
+`atan(h/d)` where `h` is the layer height and `d` is the pixel size. On my printer, this angle is
+55 degrees for a 50um layer height, given that my printer's pixel size is 35um.
 
-## Previews
+## Preview
 
-![Heads](images/heads.png)
+![Aniimation][images/operation.gif]
 
-![Tails](images/tails.png)

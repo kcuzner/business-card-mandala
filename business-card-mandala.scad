@@ -183,9 +183,17 @@ module Pit() { // `make` me
   }
 }
 
+// This includes animation capabilities
+$vpr = [248.6, 0, 146.1];
+$vpt = [4.66, 52.25, 4.24];
+$vpd = 248.82;
+$vpf = 22.5;
+
 //intersection() {
-Lid();
-//Pit();
+translate([0, -(lid_length+10)*$t, 0]) {
+  Lid();
+}
+Pit();
 //}
 
 echo(pit_height);
