@@ -43,7 +43,7 @@ ramp_length = 5 * mm;
 // Detent sizing
 detent_r = wall_thickness * 0.3;
 detent_size = detent_r / 2;
-detent_overlap = detent_size / 2;
+detent_overlap = slide_margin * 2; // deform ever so slightly, use x2 on the dot (my resin is brittle)
 detent_pos = 5 * mm; // from the end of the lid
 
 lid_width = card_width + 2 * card_margin + 2 * slide_size - 2 * slide_margin; // contact on 2 sides
@@ -185,7 +185,7 @@ module Pit() { // `make` me
 
 //intersection() {
 Lid();
-Pit();
+//Pit();
 //}
 
 echo(pit_height);
