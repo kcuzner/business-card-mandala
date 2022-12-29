@@ -1,4 +1,4 @@
-// Machi Koro Replacement Coins
+// Business Card Holder - Mandala
 // Kevin Cuzner
 //
 // Material: SLA Resin
@@ -40,6 +40,12 @@ wall_thickness = 2 * mm;
 slide_size = wall_thickness / 3;
 ramp_length = 5 * mm;
 
+// Detent sizing
+detent_r = wall_thickness * 0.3;
+detent_size = detent_r / 2;
+detent_overlap = detent_size / 2;
+detent_pos = 5 * mm; // from the end of the lid
+
 lid_width = card_width + 2 * card_margin + 2 * slide_size - 2 * slide_margin; // contact on 2 sides
 lid_length = card_length + 2 * card_margin + wall_thickness - slide_margin; // contact on 1 side
 lid_emboss = wall_thickness / 3;
@@ -64,8 +70,37 @@ module Ramp() {
   }
 }
 
+// Creates a slot for a detent, aligned the correct place on the y/z axes, but
+// centered at x=0 (so translate later). Note that the width is 2x the detent
+// depth so it can be used for either side.
+module DetentSlotNegative() {
+  w = (slide_size+slide_margin)*2;
+  l = detent_pos+detent_size*3;
+  h = detent_size+slide_margin;
+  translate([-w/2, lid_length, lid_height+slide_size+slide_margin-h]) {
+    difference() {
+      // Slot for the Pit detent
+      translate([0, -l, 0]) {
+        cube([w, l, h+pad_manifold]);
+      }
+      // Lid detent, placed so it touches the pit detent on the side facing the
+      // ramp. Note that the top of the slot is at z=0, with the slot going +z.
+      detent_z = -detent_r+detent_overlap; // protrude into the slot by the overlap
+      detent_dist = detent_r*2 - detent_overlap; // vertical distance between circles
+      detent_hyp = 2*detent_r+slide_margin; // distance between circle centers when touching
+      detent_y = detent_pos - sin(acos(detent_dist/detent_hyp))*detent_hyp;
+      translate([w/2, -detent_y, detent_z]) {
+        rotate([-90 * degrees, 0, -90 * degrees]) {
+          cylinder(r=detent_r, h=w+pad_manifold*2, center=true);
+        }
+      }
+    }
+  }
+}
+
 module Lid() { // `make` me
   difference() {
+    // The lid is a top-embossed rectangle
     translate([-lid_width/2, 0, slide_size+slide_margin]) {
       difference() {
         cube([lid_width, lid_length-slide_margin, lid_height]);
@@ -76,6 +111,14 @@ module Lid() { // `make` me
         }
       }
     }
+    // Cut a slot for the detents
+    translate([lid_width/2, 0, 0]) {
+      DetentSlotNegative();
+    }
+    translate([-lid_width/2, 0, 0]) {
+      DetentSlotNegative();
+    }
+    // Slope the end to match the ramp in the Pit
     translate([0, -slide_margin, 0]) {
       Ramp();
     }
@@ -99,6 +142,28 @@ module PitTray(l, w, h, ramp=ramp_length) {
   }
 }
 
+// Creates a negative of the lid which is used to make a slot in the pit
+module LidNegative() {
+  difference() {
+    slider_w = lid_width+2*slide_margin; // two contacts
+    slider_l = lid_length+slide_margin; // one contact
+    slider_h = lid_height+2*slide_margin; // two contacts
+    translate([-slider_w/2, -pad_manifold, slide_size]) {
+      cube([slider_w, slider_l-pad_manifold, slider_h]);
+    }
+    // Cut out some detents
+    translate([0, lid_length-detent_pos, slide_size+slider_h+(detent_r-detent_size)]) {
+      rotate([0, 90 * degrees, 0]) {
+        cylinder(h=slider_w+2*pad_manifold, r=detent_r, center=true);
+      }
+    }
+    // Slope the end to avoid interrupting the smooth finish of the ramp
+    translate([0, -pad_manifold, 0]) {
+      Ramp();
+    }
+  }
+}
+
 module Pit() { // `make` me
   difference() {
     // Outer shell
@@ -114,17 +179,7 @@ module Pit() { // `make` me
       }
     }
     // Add a slot for the lid
-    difference() {
-      slider_w = lid_width+2*slide_margin; // two contacts
-      slider_l = lid_length+slide_margin; // one contact
-      slider_h = lid_height+2*slide_margin; // two contacts
-      translate([-slider_w/2, -pad_manifold, slide_size]) {
-        cube([slider_w, slider_l+pad_manifold, slider_h]);
-      }
-      translate([0, -pad_manifold, 0]) {
-        Ramp();
-      }
-    }
+    LidNegative();
   }
 }
 
