@@ -19,5 +19,5 @@ This model prints best on an SLA printer. Plate it at an angle, according to the
 
 ## Preview
 
-![Aniimation][images/operation.gif]
+![Animation](images/operation.gif)
 
