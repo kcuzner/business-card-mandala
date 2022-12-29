@@ -29,8 +29,14 @@ card_margin = 0.2 * mm;
 // Margin between moving parts
 slide_margin = 0.05 * mm;
 
+// Thickness of a business card
+card_thickness = 0.45 * mm;
+
+// Number of cards to hold
+card_count = 8;
+
 // Holder dimension
-wall_thickness = 2.5 * mm;
+wall_thickness = 2 * mm;
 slide_size = wall_thickness / 3;
 ramp_length = 5 * mm;
 
@@ -41,15 +47,37 @@ lid_height = wall_thickness;
 
 pit_width = card_width + 2 * card_margin + 2 * wall_thickness;
 pit_length = card_length + 2 * card_margin + 2 * wall_thickness;
-pit_height = 10 * mm;
+pit_height = slide_size + lid_height + slide_margin*2 + (card_count * card_thickness) + wall_thickness;
+
+// Creates a ramp triangle in the same place where the internal ramp appears
+module Ramp() {
+  translate([-pit_width/2, pit_length - wall_thickness, pit_height]) {
+    rotate([-90 * degrees, 0, -90 * degrees]) {
+      linear_extrude(height=pit_width) {
+        polygon(points=[
+          [0, pit_height],
+          [ramp_length, wall_thickness],
+          [0, wall_thickness]
+        ]);
+      }
+    }
+  }
+}
 
 module Lid() { // `make` me
   difference() {
-    cube([lid_width, lid_length, lid_height]);
-    translate([(lid_width - svg_width) / 2, (lid_length - svg_length) / 2, -pad_manifold]) {
-      linear_extrude(height=lid_emboss+pad_manifold) {
-        import("images/mandala.svg");
+    translate([-lid_width/2, 0, slide_size+slide_margin]) {
+      difference() {
+        cube([lid_width, lid_length-slide_margin, lid_height]);
+        translate([(lid_width - svg_width) / 2, (lid_length - svg_length) / 2, -pad_manifold]) {
+          linear_extrude(height=lid_emboss+pad_manifold) {
+            import("images/mandala.svg");
+          }
+        }
       }
+    }
+    translate([0, -slide_margin, 0]) {
+      Ramp();
     }
   }
 }
@@ -73,22 +101,36 @@ module PitTray(l, w, h, ramp=ramp_length) {
 
 module Pit() { // `make` me
   difference() {
+    // Outer shell
     PitTray(l=pit_length, w=pit_width, h=pit_height);
+    // Inner shell
     translate([0, wall_thickness, -pad_manifold]) {
       PitTray(l=pit_length - 2 * wall_thickness, w=pit_width - 2*wall_thickness, h=pit_height - wall_thickness);
     }
+    // Emboss the bottom
     translate([-svg_width/2, 0, pit_height-lid_emboss]) {
       linear_extrude(height=lid_emboss+pad_manifold) {
         import("images/mandala.svg");
       }
     }
-    slider_w = lid_width+2*slide_margin; // two contacts
-    slider_l = lid_length+slide_margin; // one contact
-    slider_h = lid_height+2*slide_margin; // two contacts
-    translate([-slider_w/2, -pad_manifold, slide_size]) {
-      cube([slider_w, slider_l+pad_manifold, slider_h]);
+    // Add a slot for the lid
+    difference() {
+      slider_w = lid_width+2*slide_margin; // two contacts
+      slider_l = lid_length+slide_margin; // one contact
+      slider_h = lid_height+2*slide_margin; // two contacts
+      translate([-slider_w/2, -pad_manifold, slide_size]) {
+        cube([slider_w, slider_l+pad_manifold, slider_h]);
+      }
+      translate([0, -pad_manifold, 0]) {
+        Ramp();
+      }
     }
   }
 }
 
+//intersection() {
+Lid();
 Pit();
+//}
+
+echo(pit_height);
