@@ -24,10 +24,10 @@ svg_width = 62.1 * mm;
 svg_length = 100.0 * mm;
 
 // Margin around cards for the "pit"
-card_margin = 0.2 * mm;
+card_margin = 0.25 * mm;
 
 // Margin between moving parts
-slide_margin = 0.05 * mm;
+slide_margin = 0.08 * mm;
 
 // Thickness of a business card
 card_thickness = 0.45 * mm;
@@ -36,24 +36,25 @@ card_thickness = 0.45 * mm;
 card_count = 8;
 
 // Holder dimension
-wall_thickness = 2 * mm;
-slide_size = wall_thickness / 3;
-ramp_length = 5 * mm;
+wall_thickness = 2.0 * mm;
+slide_depth = wall_thickness / 3; // depth into the walls
+slide_z = 1 * mm; // distance from the top
+ramp_length = 12 * mm;
 
 // Detent sizing
-detent_r = wall_thickness * 0.3;
+detent_r = wall_thickness * 0.5;
 detent_size = detent_r / 2;
-detent_overlap = slide_margin * 2; // deform ever so slightly, use x2 on the dot (my resin is brittle)
-detent_pos = 5 * mm; // from the end of the lid
+detent_overlap = slide_margin * 2.1; // deform ever so slightly, use a little more than x2 to put some strain
+detent_pos = ramp_length + 1 * mm; // from the end of the lid
 
-lid_width = card_width + 2 * card_margin + 2 * slide_size - 2 * slide_margin; // contact on 2 sides
-lid_length = card_length + 2 * card_margin + wall_thickness - slide_margin; // contact on 1 side
-lid_emboss = wall_thickness / 3;
+lid_width = card_width + 2 * card_margin + 2 * slide_depth - 2 * slide_margin; // contact on 2 sides
+lid_length = card_length + 2 * card_margin + wall_thickness + ramp_length - slide_margin; // contact on 1 side
+lid_emboss = wall_thickness / 4;
 lid_height = wall_thickness;
 
 pit_width = card_width + 2 * card_margin + 2 * wall_thickness;
-pit_length = card_length + 2 * card_margin + 2 * wall_thickness;
-pit_height = slide_size + lid_height + slide_margin*2 + (card_count * card_thickness) + wall_thickness;
+pit_length = card_length + 2 * card_margin + 2 * wall_thickness + ramp_length;
+pit_height = slide_z + lid_height + slide_margin*2 + (card_count * card_thickness) + wall_thickness;
 
 // Creates a ramp triangle in the same place where the internal ramp appears
 module Ramp() {
@@ -74,10 +75,10 @@ module Ramp() {
 // centered at x=0 (so translate later). Note that the width is 2x the detent
 // depth so it can be used for either side.
 module DetentSlotNegative() {
-  w = (slide_size+slide_margin)*2;
+  w = (slide_depth+slide_margin)*2;
   l = detent_pos+detent_size*3;
   h = detent_size+slide_margin;
-  translate([-w/2, lid_length, lid_height+slide_size+slide_margin-h]) {
+  translate([-w/2, lid_length, lid_height+slide_z+slide_margin-h]) {
     difference() {
       // Slot for the Pit detent
       translate([0, -l, 0]) {
@@ -101,7 +102,7 @@ module DetentSlotNegative() {
 module Lid() { // `make` me
   difference() {
     // The lid is a top-embossed rectangle
-    translate([-lid_width/2, 0, slide_size+slide_margin]) {
+    translate([-lid_width/2, 0, slide_z+slide_margin]) {
       difference() {
         cube([lid_width, lid_length-slide_margin, lid_height]);
         translate([(lid_width - svg_width) / 2, (lid_length - svg_length) / 2, -pad_manifold]) {
@@ -148,11 +149,11 @@ module LidNegative() {
     slider_w = lid_width+2*slide_margin; // two contacts
     slider_l = lid_length+slide_margin; // one contact
     slider_h = lid_height+2*slide_margin; // two contacts
-    translate([-slider_w/2, -pad_manifold, slide_size]) {
+    translate([-slider_w/2, -pad_manifold, slide_z]) {
       cube([slider_w, slider_l-pad_manifold, slider_h]);
     }
     // Cut out some detents
-    translate([0, lid_length-detent_pos, slide_size+slider_h+(detent_r-detent_size)]) {
+    translate([0, lid_length-detent_pos, slide_z+slider_h+(detent_r-detent_size)]) {
       rotate([0, 90 * degrees, 0]) {
         cylinder(h=slider_w+2*pad_manifold, r=detent_r, center=true);
       }
@@ -196,4 +197,4 @@ translate([0, -(lid_length+10)*$t, 0]) {
 Pit();
 //}
 
-echo(pit_height);
+echo(pit_height=pit_height, ramp_angle=atan(pit_height/ramp_length));
