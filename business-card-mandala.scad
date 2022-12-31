@@ -123,6 +123,14 @@ module Lid() { // `make` me
     translate([0, -slide_margin, 0]) {
       Ramp();
     }
+    // Trim excess pattern after the ramp hits the embossing. This will prevent
+    // floating sections.
+    ramp_angle = atan(ramp_length/(pit_height-wall_thickness));
+    pattern_z = slide_z + slide_margin + lid_emboss;
+    cutoff = tan(ramp_angle) * pattern_z;
+    translate([-lid_width/2-pad_manifold, lid_length+pad_manifold-cutoff, -pad_manifold])  {
+      cube([lid_width+2*pad_manifold, cutoff+pad_manifold, pit_height+2*pad_manifold]);
+    }
   }
 }
 
